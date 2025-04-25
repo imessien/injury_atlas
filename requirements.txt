@@ -1,0 +1,39 @@
+# Core Deep Learning (PyTorch) - Based on scPRAM, scLAMBDA, geneformer, transformers
+torch>=1.13.1
+torchaudio>=0.13.1
+torchvision>=0.14.1
+
+# Hugging Face Ecosystem - Based on transformers, geneformer, scLAMBDA
+transformers>=4.20.0 # A reasonably recent version
+tokenizers
+datasets
+huggingface-hub
+safetensors
+
+# Single-Cell Analysis (Scanpy Ecosystem) - Based on Scanpy, scPRAM, scLAMBDA, geneformer
+scanpy>=1.9.3
+anndata>=0.8.0 # Common dependency
+leidenalg # For clustering
+louvain # For clustering
+python-igraph # Often used with leidenalg/louvain
+numba # Performance dependency for scanpy/umap
+scrublet # Doublet detection (mentioned in Scanpy context)
+scanorama # Integration (mentioned in Scanpy context)
+pybiomart # Gene annotations (mentioned in Scanpy context)
+
+# scPRAM Specific Dependencies
+pot==0.9.1 # Python Optimal Transport
+adjusttext==0.7
+
+# General Data Science & Utility
+numpy
+scipy
+pandas
+scikit-learn
+matplotlib
+seaborn
+h5py # For reading/writing AnnData files
+tqdm # Progress bars
+
+# Jupyter Environment (from scPRAM)
+jupyter==1.0.0
