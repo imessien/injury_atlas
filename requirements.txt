@@ -1,39 +1,45 @@
-# Core Deep Learning (PyTorch) - Based on scPRAM, scLAMBDA, geneformer, transformers
-torch>=1.13.1
+# Core Deep Learning & ML
+torch==1.13.1 # Combined from pytorch>=1.6.0, <=1.13.1 and torch>=1.13.1
 torchaudio>=0.13.1
 torchvision>=0.14.1
+scikit-learn>=1.3.0
 
-# Hugging Face Ecosystem - Based on transformers, geneformer, scLAMBDA
-transformers>=4.20.0 # A reasonably recent version
+# Hugging Face Ecosystem (for GeneFormer, etc.)
+transformers>=4.20.0
 tokenizers
 datasets
 huggingface-hub
 safetensors
 
-# Single-Cell Analysis (Scanpy Ecosystem) - Based on Scanpy, scPRAM, scLAMBDA, geneformer
-scanpy>=1.9.3
-anndata>=0.8.0 # Common dependency
-leidenalg # For clustering
-louvain # For clustering
-python-igraph # Often used with leidenalg/louvain
-numba # Performance dependency for scanpy/umap
-scrublet # Doublet detection (mentioned in Scanpy context)
-scanorama # Integration (mentioned in Scanpy context)
-pybiomart # Gene annotations (mentioned in Scanpy context)
+# Single-Cell Analysis (Scanpy Ecosystem)
+scanpy>=1.9.3 # Using the higher version requirement
+anndata>=0.8.0 # Using the higher version requirement
+leidenalg # Clustering
+louvain # Clustering
+python-igraph # Graph dependencies for clustering
+numba>=0.49.1 # Performance for UMAP/Scanpy
+umap-learn>=0.4.6 # Dimensionality reduction
 
-# scPRAM Specific Dependencies
-pot==0.9.1 # Python Optimal Transport
-adjusttext==0.7
+# Dependencies for Specific Perturbation Models
+# Install scgen, scPRAM, scLAMBDA following their respective repository instructions.
+# Key dependencies are listed below:
+scvi-tools # Required by scgen
+pot==0.9.1 # Required by scPRAM (Python Optimal Transport)
+adjusttext==0.7 # Required by scPRAM
 
 # General Data Science & Utility
-numpy
-scipy
-pandas
-scikit-learn
-matplotlib
-seaborn
-h5py # For reading/writing AnnData files
+numpy>=1.19.0
+scipy>=1.10.1
+pandas # Pinned version 1.1.5 removed due to potential conflicts with scanpy>=1.9.3
+matplotlib<3.7 # Version constraint from original list
+seaborn # Plotting
+h5py # For reading/writing AnnData files (.h5ad)
 tqdm # Progress bars
 
-# Jupyter Environment (from scPRAM)
-jupyter==1.0.0
+# Optional Single-Cell Tools (Uncomment if needed)
+# scrublet # Doublet detection
+# scanorama # Data integration
+# pybiomart # Gene annotations
+
+# Development Environment (Optional)
+jupyter # For notebooks (removed pinned version 1.0.0)
