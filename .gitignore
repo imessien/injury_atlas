@@ -7,5 +7,5 @@ env/
 venv/
 coverage
 htmlcov/
-Geneformer/
+geneformer/
 scLambda/
