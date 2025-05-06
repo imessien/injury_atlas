@@ -30,7 +30,7 @@ I am developing a pipeline to analyze a mouse single-cell RNA-seq atlas containi
 - [Evo-8k](https://huggingface.co/togethercomputer/evo-1-8k-base) #Can't use
 - [scBERT](https://huggingface.co/tdc/scBERT) #Can't use 
 - [Isoformer](https://huggingface.co/isoformer-anonymous/Isoformer) #Can't use Isoformer 
-- [scGPT](https://github.com/bowang-lab/scGPT) #Needs OpenAI key
+- **[scGPT](https://github.com/bowang-lab/scGPT)** #Works but not good
 - [scPerb](https://github.com/QSong-github/scPerb) #Don't like this one
 - [scFoundation](https://github.com/biomap-research/scFoundation) #Taken down
 - **[GeneFormer](https://huggingface.co/ctheodoris/GeneFormer)** #Using

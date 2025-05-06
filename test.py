@@ -1,160 +1,9 @@
-# Import required packages
-from typing import Any, Dict, List, Tuple
-import scanpy as sc
-import pandas as pd
-import numpy as np
-import anndata as ad
-from anndata import AnnData
-import logging
-import scvi, scANVI
-import torch
-from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM, AutoConfig, AutoModelForSequenceClassification
-from pereggrn import Pereggrn, load_data, preprocess_data
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-
-# Configure logging and verbosity
-sc.settings.verbosity = 3
-sc.logging.print_header()
-
-# Data Loading and Preprocessing
-adata = sc.read_10x_mtx("path/to/mouse/data")
-adata.var_names_make_unique()
-
-def convert_mouse_to_human_gene_names(gene_list):
-    return [gene.upper() for gene in gene_list]
-
-# Filter cells and genes
-sc.pp.filter_cells(adata, min_genes=200)
-sc.pp.filter_genes(adata, min_cells=3)
-
-# Calculate quality control metrics
-sc.pp.calculate_qc_metrics(adata, inplace=True)
-
-# Convert gene names to human format
-adata.var_names = convert_mouse_to_human_gene_names(adata.var_names)
-
-# Split data into train, validation, and holdout sets
-train_idx, temp_idx = train_test_split(
-    np.arange(adata.n_obs),
-    test_size=0.3,
-    random_state=42,
-    stratify=adata.obs['condition']
-)
-
-val_idx, holdout_idx = train_test_split(
-    temp_idx,
-    test_size=0.5,
-    random_state=42,
-    stratify=adata[temp_idx].obs['condition']
-)
-
-train_data = adata[train_idx]
-val_data = adata[val_idx]
-holdout_data = adata[holdout_idx]
-
-# Visualize highest expressed genes
-sc.pl.highest_expr_genes(train_data, n_top=20)
-
-# Define target genes
-target_genes = ['MYC', 'AKT1', 'CYC', 'STAT3', 'BIP', 'JUN', 'FOS', 'Cox41', 'HIF1A', 'HSPA9']
-
-# Initialize and train model
-scvi.settings.seed = 0
-scvi.model.SCVI.setup_anndata(train_data)
-
-model = scvi.model.SCVI(
-    train_data,
-    n_layers=1,
-    n_hidden=64,
-    dropout_rate=0.1,
-    n_latent=10
-)
-
-model.train(
-    max_epochs=100,
-    early_stopping=True,
-    early_stopping_patience=5,
-    batch_size=128,
-    train_size=0.8,
-    validation_size=0.2,
-    plan_kwargs={
-        'lr': 1e-3,
-        'reduce_lr_on_plateau': True,
-        'lr_patience': 3,
-        'lr_factor': 0.5,
-        'min_lr': 1e-5
-    }
-)
-
-# Evaluate on validation set
-val_latent = model.get_latent_representation(val_data)
-val_predictions = model.get_normalized_expression(val_data)
-
-# Evaluate on holdout set
-holdout_latent = model.get_latent_representation(holdout_data)
-holdout_predictions = model.get_normalized_expression(holdout_data)
-
-# Differential Expression analysis
-de_df = model.differential_expression(
-    groupby="injury",
-    genes_to_test=target_genes
-)
-
-de_df = de_df.join(adata.var[['gene_id']], how='inner')
-de_df = de_df.sort_values('lfc_mean', ascending=False)
-
-# Visualization
-sc.pl.heatmap(train_data, 
-              var_names=target_genes,
-              groupby='treatment',
-              show_gene_labels=True,
-              figsize=(10,8))
-
-# ContrastiveVI setup
-scvi.external.ContrastiveVI.setup_anndata(train_data, layer="count")
-
-contrastive_vi_model = scvi.external.ContrastiveVI(
-    train_data, 
-    n_salient_latent=10, 
-    n_background_latent=10, 
-    use_observed_lib_size=False
-)
-
-# MRVI Analysis
-from scvi.external import MRVI
-
-MRVI.setup_anndata(train_data, sample_key="treatment")
-mrvi_model = MRVI(train_data)
-mrvi_model.train(max_epochs=400)
-
-# Get and visualize latent representations
-u = mrvi_model.get_latent_representation()
-u_mde = scvi.model.utils.mde(u)
-
-# Visualize embeddings
-sc.pl.embedding(
-    train_data,
-    basis="u_mde", 
-    color=["cell_type", "injury", "tissue"],
-    ncols=3,
-    title=['Cell Type (MRVI)', 'Injury (MRVI)', 'Tissue (MRVI)']
-)
-
-# Differential expression and abundance analysis
-de_results = mrvi_model.differential_expression(
-    sample_cov_keys=["injury"],
-    store_lfc=True
-)
-
-da_results = mrvi_model.differential_abundance(sample_cov_keys=["treatment"])
 
 import logging
 import scanpy as sc
 import scgen
 from typing import Dict, Any, Tuple, List
 import numpy as np
-from sklearn.model_selection import train_test_split
 from scgen import SCGEN
 import sclambda_model
 import models
@@ -163,6 +12,8 @@ from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassific
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl
+
+target_genes = ['MYC', 'AKT1', 'CYC', 'STAT3', 'BIP', 'JUN', 'FOS', 'Cox41', 'HIF1A', 'HSPA9']
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -372,15 +223,7 @@ class ModelEnsemble:
                 key_dic=TrainableModels.CONFIG
             )
             
-            # Evaluate on holdout set
-            holdout_ground_truth = holdout_data[holdout_data.obs[TrainableModels.CONFIG['cell_type_key']] == target_cell_type]
-            holdout_eval_adata = holdout_ground_truth.concatenate(pred)
-            holdout_score = evaluate.evaluate_adata(
-                eval_adata=holdout_eval_adata,
-                cell_type=target_cell_type,
-                key_dic=TrainableModels.CONFIG
-            )
-            
+
             return pred, val_score, holdout_score
             
         except Exception as e:
