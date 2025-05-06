@@ -5,20 +5,6 @@ __pycache__/
 *.pyd
 env/
 venv/
-.env
-.idea/
-.vscode/s
-*.log
-*.swp
-*.swo
-.ipynb_checkpoints/
-*.ipynb
-*.egg-info/
-dist/
-build/
-.coverage
+coverage
 htmlcov/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
 
